@@ -119,6 +119,10 @@ class SafeView extends Component {
     _customStatusBarHeight = height;
   };
 
+  static defaultProps = {
+    shouldOnLayout: true,
+  };
+
   state = {
     touchesTop: true,
     touchesBottom: true,
@@ -129,11 +133,14 @@ class SafeView extends Component {
     viewHeight: 0,
   };
 
-  componentDidMount() {
+  componentDidMount() {    
+    const { shouldOnLayout } = this.props;
     this._isMounted = true;
-    InteractionManager.runAfterInteractions(() => {
-      this._onLayout();
-    });
+    if (shouldOnLayout) {
+      InteractionManager.runAfterInteractions(() => {
+        this._onLayout();
+      });
+    }
   }
 
   componentWillUnmount() {
@@ -145,7 +152,7 @@ class SafeView extends Component {
   }
 
   render() {
-    const { forceInset = false, isLandscape, style, ...props } = this.props;
+    const { shouldOnLayout, forceInset = false, isLandscape, style, ...props } = this.props;
 
     const safeAreaStyle = this._getSafeAreaStyle();
 
@@ -154,13 +161,15 @@ class SafeView extends Component {
         ref={c => (this.view = c)}
         pointerEvents="box-none"
         {...props}
-        onLayout={this._onLayout}
+        onLayout={shouldOnLayout ? this._onLayout : null}
         style={safeAreaStyle}
       />
     );
   }
 
   _onLayout = (...args) => {
+    const { shouldOnLayout } = this.props;
+    if (!shouldOnLayout) return;
     if (!this._isMounted) return;
     if (!this.view) return;
 
